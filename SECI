@@ -1,0 +1,407 @@
+#!/bin/bash
+
+vpn_path=/etc/VPN
+vpn_script_path=$vpn_path/vpn
+vpn_config_path=$vpn_path/vpn/vpn_config
+vpn_get_url="https://docs.basa.ir/vpn/linux/vpn.tar.gz"
+check_install(){
+
+if ! dpkg -l $1 &> /dev/null; then
+    echo "Installing $1..."
+    # Install build-essential
+    sudo apt-get install -y build-essential
+    echo "$1 installed successfully."
+else
+    echo "$1 is already installed."
+fi
+}
+
+ask_question() {
+
+    local question=$1
+    local answer
+
+    read -p "$question " answer
+    echo "$answer"
+}
+make_main_scripts(){
+cat << 'EOF'
+
+#######################################################
+######					         ######
+######        MAKEING MAIN SCRIPTS FILES         ######
+######						 ######
+#######################################################
+
+EOF
+mkdir -p $vpn_script_path
+
+cat << 'EOF' > $vpn_script_path/vpn-connect.sh
+#!/bin/bash
+# Load the configurations file
+source $1
+
+# Stop the SoftEther client (if running)
+sudo $CLIENT_DIR/vpnclient stop
+
+sleep 2
+
+# Start the SoftEther client
+sudo $CLIENT_DIR/vpnclient start
+
+sleep 3
+
+# Connect to the VPN server
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountConnect $ACCOUNT_NAME
+
+sleep 5
+
+# Check the VPN Account connection status
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountList
+
+# Refresh IP address info from VPN server
+sudo dhclient vpn_$NIC_NAME
+
+sleep 2
+
+# Set IP routes for VPN
+#sudo ip route add $VPN_HOST_IPv4/32 via $LOCAL_GATEWAY
+#sudo ip route del default via $LOCAL_GATEWAY
+
+sudo ip route add $VPN_HOST_IPv4/32 via $LOCAL_GATEWAY
+sudo ip route replace default via $DEFAULT_GW
+#sudo ip route add 10.140.0.0/16 via 10.130.4.1
+sudo netstat -rn
+
+sleep 3
+
+# Refresh IP address info from VPN server
+sudo dhclient vpn_$NIC_NAME
+
+# Check the VPN Account connection status
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountList
+
+EOF
+
+
+
+cat << 'EOF' > $vpn_script_path/setup-client.sh
+#!/bin/bash
+# Load the configurations file
+source $1
+
+# Build the SoftEther client
+#make --directory=$CLIENT_DIR
+
+# Wait before executing next step
+sleep 2
+
+# Start the SoftEther client
+sudo $CLIENT_DIR/vpnclient start
+
+sleep 2
+
+# Check if the SoftEther client is started properly
+$CLIENT_DIR/vpncmd /TOOLS /CMD check
+
+sleep 2
+
+# Create a virtual network interface to connect to the VPN server
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD NicCreate $NIC_NAME
+
+sleep 2
+
+# Configure the VPN account info and configs
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountCreate $ACCOUNT_NAME /SERVER:$VPN_HOST_IPv4:$VPN_PORT /HUB:$DESTINATION_HUB /USERNAME:$VPN_USERNAME  /NICNAME:$NIC_NAME
+
+sleep 2
+
+# Configure the VPN server password
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountPassword $ACCOUNT_NAME /PASSWORD:$VPN_PASS /TYPE:standard
+EOF
+
+cat << 'EOF' > $vpn_script_path/vpn-disconnect.sh
+#!/bin/bash
+# Load the configurations file
+source $1
+
+# Stop the SoftEther client
+sudo $CLIENT_DIR/vpnclient stop
+
+# Remove the ip routes of VPN
+sudo ip route del $VPN_HOST_IPv4/32
+sudo ip route replace default via $LOCAL_GATEWAY
+# List the network routes
+sudo netstat -rn
+EOF
+
+
+cat << 'EOF' > $vpn_script_path/remove-client.sh
+#!/bin/bash
+# Load the configurations file
+source $1
+
+# Stop the SoftEther client (if running)
+sudo $CLIENT_DIR/vpnclient stop
+
+sleep 2
+
+# Start the SoftEther client
+sudo $CLIENT_DIR/vpnclient start
+
+sleep 3
+
+# Delete the VPN Account info
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountDelete $ACCOUNT_NAME
+
+sleep 2
+
+# Delete the virtual network interface
+$CLIENT_DIR/vpncmd /CLIENT localhost /CMD NicDelete $NIC_NAME
+
+sleep 2
+
+# Stop the SoftEther client
+sudo $CLIENT_DIR/vpnclient stop
+EOF
+
+cat << EOF > $vpn_script_path/vpn
+#!/bin/bash
+if [ -n "\$2" ]; then
+    vpn_config="\$2"
+else
+    vpn_config=$vpn_config_path
+fi
+if [ -f "\$vpn_config" ]; then
+    source \$vpn_config
+    if [ -n "\$1" ]; then
+        case "\$1" in
+            start)
+                echo "Starting VPN..."
+                bash \$CLIENT_DIR/vpn-connect.sh \$vpn_config
+                ;;
+            stop)
+                echo "Stopping VPN..."
+                bash \$CLIENT_DIR/vpn-disconnect.sh \$vpn_config
+                ;;
+            setup)
+                echo "Setuping VPN..."
+                bash \$CLIENT_DIR/setup-client.sh \$vpn_config
+                ;;
+            *)
+                echo "Invalid input. Please enter 'start' or 'stop' or 'setup'."
+                ;;
+        esac
+    else
+        echo "Please provide 'start' or 'stop' or 'setup' as an argument."
+    fi
+else
+    echo "VPN configuration file not found: \$vpn_config"
+fi
+EOF
+
+cat <<EOF > $vpn_config_path
+CLIENT_DIR="$vpn_script_path"
+NIC_NAME="nic1"
+ACCOUNT_NAME="\${ACCOUNT_NAME}"
+VPN_HOST_IPv4="\${VPN_HOST_IPv4}"
+LOCAL_GATEWAY="\${LOCAL_GATEWAY}"
+DESTINATION_HUB="\${DESTINATION_HUB}"
+VPN_PORT="\${VPN_PORT}"
+VPN_USERNAME="\${VPN_USERNAME}"
+VPN_PASS="\${VPN_PASS}"
+DEFAULT_GW="\${DEFAULT_GW}"
+EOF
+
+
+}
+get_vpn_files() {
+cat << 'EOF'
+
+#######################################################
+######					         ######
+######	    	    GET VPNCLIENT FILES	         ######
+######						 ######
+#######################################################
+EOF
+    mkdir -p $vpn_script_path
+    wget $vpn_get_url -O $vpn_path/vpn.tar.gz
+    tar -xvzf $vpn_path/vpn.tar.gz -C $vpn_path/ --transform='s|^vpnclient/|vpn/|'
+    if check_install build-essential;then
+        echo "Makeing VpnClient ..."
+        make --directory=$vpn_script_path main
+    fi
+    chmod +x $vpn_path/*
+    make_main_scripts
+    mv $vpn_script_path/vpn /bin/
+}
+
+current_os_dns=$(cat /etc/resolv.conf | grep -oP 'nameserver \K\d+\.\d+\.\d+\.\d+' | head -n 1)
+
+echo "dnsserver is $current_os_dns"
+
+operation=$(ask_question "choose operation [ --install | --install-basa  | --edit | --uninstall ]:")
+
+case $operation in
+    mm)
+    make_main_scripts
+    ;;
+    t)
+        vpn_name=$(ask_question "Choose name your vpn configs?")
+        vpn_host=$(ask_question "What is your vpn host?")
+        vpn_port=$(ask_question "What is your vpn port?")
+        vpn_hub=$(ask_question "What is your virtual hub?")
+        username=$(ask_question "What is your username?")
+        password=$(ask_question "What is your password?")
+                if [[ $vpn_host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VPN_IP=$vpn_host
+        else
+            VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
+        fi
+
+        DEFAULT_GW="192.168.30.1"
+
+        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
+        
+        sed -i "s|\${ACCOUNT_NAME}|$vpn_name|g" $vpn_config_path
+        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
+        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
+        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
+        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
+        sed -i "s|\${VPN_USERNAME}|$username|g" $vpn_config_path
+        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
+        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
+        
+        bash  $vpn_script_path/setup-client.sh
+    ;;
+    --install|-i|i)
+        get_vpn_files
+
+        vpn_name=$(ask_question "Choose name your vpn configs?")
+        vpn_host=$(ask_question "What is your vpn host?")
+        vpn_port=$(ask_question "What is your vpn port?")
+        vpn_hub=$(ask_question "What is your virtual hub?")
+        username=$(ask_question "What is your username?")
+        password=$(ask_question "What is your password?")
+
+        if [[ $vpn_host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VPN_IP=$vpn_host
+        else
+            VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
+        fi
+
+        DEFAULT_GW="192.168.30.1"
+
+        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
+        
+        sed -i "s|\${ACCOUNT_NAME}|$vpn_name|g" $vpn_config_path
+        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
+        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
+        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
+        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
+        sed -i "s|\${VPN_USERNAME}|$username|g" $vpn_config_path
+        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
+        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
+        
+        bash  $vpn_script_path/setup-client.sh $vpn_config_path
+        vpn start
+
+        echo
+        echo
+        echo "---------------------> start your vpn with command:   vpn start"
+        echo "---------------------> stop your vpn with command:    vpn stop"
+
+    ;;
+
+    --install-basa|-b|b)
+        get_vpn_files
+        vpn_host="vpn.basa.ir"
+        vpn_port="8585"
+        vpn_hub="BASA"
+        username=$(ask_question "What is your username?")
+        password=$(ask_question "What is your password?")
+
+        
+        VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
+        
+
+        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
+        DEFAULT_GW="10.140.0.1"
+        
+        sed -i "s|\${ACCOUNT_NAME}|$vpn_name|g" $vpn_config_path
+        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
+        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
+        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
+        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
+        sed -i "s|\${VPN_USERNAME}|$username|g" $vpn_config_path
+        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
+        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
+        
+        bash  $vpn_script_path/setup-client-basa.sh $vpn_config_path 
+        # vpn start
+
+        echo
+        echo
+        echo "---------------------> start your vpn with command:   vpn start"
+        echo "---------------------> stop your vpn with command:    vpn stop"
+
+    ;;
+
+    --uninstall|-u|u)
+        
+        vpn stop
+        bash  $vpn_script_path/remove-client.sh
+        rm -rf $vpn_script_path
+        rm -rf /bin/vpn*
+
+    ;;
+
+    --edit|-e|e)
+        
+        vpn stop
+        bash  $vpn_script_path/remove-client.sh
+        rm -rf $vpn_script_path
+        rm -rf /bin/vpn*
+
+        get_vpn_files
+        vpn_name=$(ask_question "Choose name your vpn configs?")
+        vpn_host=$(ask_question "What is your vpn host?")
+        vpn_port=$(ask_question "What is your vpn port?")
+        vpn_hub=$(ask_question "What is your virtual hub?")
+        username=$(ask_question "What is your username?")
+        password=$(ask_question "What is your password?")
+
+        if [[ $vpn_host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            VPN_IP=$vpn_host
+        else
+            VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
+        fi
+
+        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
+
+        DEFAULT_GW="192.168.30.1"
+        
+        sed -i "s|\${ACCOUNT_NAME}|$username|g" $vpn_config_path
+        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
+        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
+        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
+        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
+        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
+        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
+
+        bash  $vpn_script_path/setup-client.sh
+        vpn start
+
+        echo
+        echo
+        echo "---------------------> start your vpn with command:   vpn start"
+        echo "---------------------> stop your vpn with command:    vpn stop"
+    ;;
+
+    *)
+        echo "Invalid parameter was passed!"
+    ;;
+
+esac
+
+
