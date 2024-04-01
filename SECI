@@ -240,7 +240,7 @@ current_os_dns=$(cat /etc/resolv.conf | grep -oP 'nameserver \K\d+\.\d+\.\d+\.\d
 
 echo "dnsserver is $current_os_dns"
 
-operation=$(ask_question "choose operation [ --install | --install-basa  | --edit | --uninstall ]:")
+operation=$(ask_question "choose operation [ --install | --edit | --uninstall ]:")
 
 case $operation in
     --install|-i|i)
@@ -275,47 +275,7 @@ case $operation in
         bash  $vpn_script_path/setup-client.sh $vpn_config_path
         vpn start
 
-        echo
-        echo
-        echo "---------------------> start your vpn with command:   vpn start"
-        echo "---------------------> stop your vpn with command:    vpn stop"
-
     ;;
-
-    --install-basa|-b|b)
-        get_vpn_files
-        vpn_host="vpn.basa.ir"
-        vpn_port="8585"
-        vpn_hub="BASA"
-        username=$(ask_question "What is your username?")
-        password=$(ask_question "What is your password?")
-
-        
-        VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
-        
-
-        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
-        DEFAULT_GW="10.140.0.1"
-        
-        sed -i "s|\${ACCOUNT_NAME}|$vpn_name|g" $vpn_config_path
-        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
-        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
-        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
-        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
-        sed -i "s|\${VPN_USERNAME}|$username|g" $vpn_config_path
-        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
-        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
-        
-        bash  $vpn_script_path/setup-client-basa.sh $vpn_config_path 
-        # vpn start
-
-        echo
-        echo
-        echo "---------------------> start your vpn with command:   vpn start"
-        echo "---------------------> stop your vpn with command:    vpn stop"
-
-    ;;
-
     --uninstall|-u|u)
         
         vpn stop
@@ -360,11 +320,6 @@ case $operation in
 
         bash  $vpn_script_path/setup-client.sh
         vpn start
-
-        echo
-        echo
-        echo "---------------------> start your vpn with command:   vpn start"
-        echo "---------------------> stop your vpn with command:    vpn stop"
     ;;
 
     *)
