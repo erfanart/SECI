@@ -3,7 +3,7 @@
 vpn_path=/etc/VPN
 vpn_script_path=$vpn_path/vpn
 vpn_config_path=$vpn_path/vpn/vpn_config
-vpn_get_url="https://docs.basa.ir/vpn/linux/vpn.tar.gz"
+vpn_get_url="https://www.softether-download.com/files/softether/v4.43-9799-beta-2023.08.31-tree/Linux/SoftEther_VPN_Client/64bit_-_Intel_x64_or_AMD64/softether-vpnclient-v4.43-9799-beta-2023.08.31-linux-x64-64bit.tar.gz"
 check_install(){
 
 if ! dpkg -l $1 &> /dev/null; then
