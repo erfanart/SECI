@@ -243,37 +243,6 @@ echo "dnsserver is $current_os_dns"
 operation=$(ask_question "choose operation [ --install | --install-basa  | --edit | --uninstall ]:")
 
 case $operation in
-    mm)
-    make_main_scripts
-    ;;
-    t)
-        vpn_name=$(ask_question "Choose name your vpn configs?")
-        vpn_host=$(ask_question "What is your vpn host?")
-        vpn_port=$(ask_question "What is your vpn port?")
-        vpn_hub=$(ask_question "What is your virtual hub?")
-        username=$(ask_question "What is your username?")
-        password=$(ask_question "What is your password?")
-                if [[ $vpn_host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            VPN_IP=$vpn_host
-        else
-            VPN_IP=$(nslookup $vpn_host $current_os_dns| grep -A 2 "Name" | grep Address | awk 'NR==1 {print $2}')
-        fi
-
-        DEFAULT_GW="192.168.30.1"
-
-        LAST_GATEWAY=$(ip route | awk '/default/ { print $3 }')
-        
-        sed -i "s|\${ACCOUNT_NAME}|$vpn_name|g" $vpn_config_path
-        sed -i "s|\${VPN_HOST_IPv4}|$VPN_IP|g" $vpn_config_path
-        sed -i "s|\${LOCAL_GATEWAY}|$LAST_GATEWAY|g" $vpn_config_path
-        sed -i "s|\${DESTINATION_HUB}|$vpn_hub|g" $vpn_config_path
-        sed -i "s|\${VPN_PORT}|$vpn_port|g" $vpn_config_path
-        sed -i "s|\${VPN_USERNAME}|$username|g" $vpn_config_path
-        sed -i "s|\${VPN_PASS}|$password|g" $vpn_config_path
-        sed -i "s|\${DEFAULT_GW}|$DEFAULT_GW|g" $vpn_config_path
-        
-        bash  $vpn_script_path/setup-client.sh
-    ;;
     --install|-i|i)
         get_vpn_files
 
