@@ -257,7 +257,7 @@ rm $1
 
 }
 
-export remove-client
+export -f remove-client
 $CLIENT_DIR/vpn-list.sh $1 remove-client $CLIENT_DIR/remove-client.sh
 
 EOF
