@@ -44,9 +44,8 @@ cat << 'EOF' > $vpn_script_path/vpn-connect.sh
 #!/bin/bash
 # Load the configurations file
 source $1
-
 # Stop the SoftEther client (if running)
-sudo $CLIENT_DIR/vpnclient stop
+vpn stop
 
 sleep 2
 
@@ -74,7 +73,11 @@ sleep 2
 
 sudo ip route add $VPN_HOST_IPv4/32 via $LOCAL_GATEWAY
 sudo ip route replace default via $DEFAULT_GW
-#sudo ip route add 10.140.0.0/16 via 10.130.4.1
+
+
+
+
+$CLIENT_DIR/custom-route.sh $1
 sudo netstat -rn
 
 sleep 3
@@ -201,6 +204,8 @@ sudo $CLIENT_DIR/vpnclient stop
 sudo ip route del $VPN_HOST_IPv4/32
 sudo ip route replace default via $LOCAL_GATEWAY
 # List the network routes
+sudo netplan apply
+sleep 2
 sudo netstat -rn
 EOF
 
@@ -344,7 +349,7 @@ case $operation in
     p|-p|--port)
         vpn_port=$(ask_question "What is your vpn port?")
         $CMD AccountSet $ACCOUNT_NAME /SERVER:$VPN_HOST_IPv4:$vpn_port /HUB:$DESTINATION_HUB
-	sed --debug -i "s/VPN_PORT=\"[^\"]*\"/VPN_PORT=\"$vpn_port\"/g" $1        
+	    sed -i "s/VPN_PORT=\"[^\"]*\"/VPN_PORT=\"$vpn_port\"/g" $1        
         echo $1
     ;;
     h|-h|--hub)
@@ -397,27 +402,33 @@ cat << EOF > $vpn_script_path/vpn
 #!/bin/bash
 if [ -f "$vpn_config_path" ]; then
     vpn_config=$vpn_config_path
-    source \$vpn_config
+    source  \$vpn_config
+    values=(\$(< \$vpn_config))
+    for i in \${values[@]}; do
+        i=\$(sed 's/"//g' <<< "\$i")
+        export \$i
+    done
+echo $CLIENT_DIR
     check-conf(){
-    if [ -n "\$3" ]; then
-	if [[ -f \$3 ]]; then
-            vpn_client_config="\$3"
-            bash \$CLIENT_DIR/\$2 \$vpn_client_config
+        if [ -n "\$3" ]; then
+	        if [[ -f \$3 ]]; then
+                vpn_client_config="\$3"
+                bash \$CLIENT_DIR/\$2 \$vpn_client_config
+            else
+                echo "File Is Not Valid"
+	            /bin/vpn \$1
+	        fi
         else
-            echo "File Is Not Valid"
-	        /bin/vpn \$1
-	fi
-    else
-        if [[ -f \$MAIN_CLIENT_CONFIG ]]; then
-            vpn_client_config=\$MAIN_CLIENT_CONFIG
-	        bash \$CLIENT_DIR/\$2 \$vpn_client_config
-        else
-            echo "Changing Default VPN CLIENT..."
-            bash \$CLIENT_DIR/vpn-choice.sh \$vpn_config
-            /bin/vpn \$1
+            if [[ -f \$MAIN_CLIENT_CONFIG ]]; then
+                vpn_client_config=\$MAIN_CLIENT_CONFIG
+	            bash \$CLIENT_DIR/\$2 \$vpn_client_config
+            else
+                echo "Changing Default VPN CLIENT..."
+                bash \$CLIENT_DIR/vpn-choice.sh \$vpn_config
+                /bin/vpn \$1
+            fi
         fi
-    fi
-}
+    }
     if [ -n "\$1" ]; then
         case "\$1" in
             start)
@@ -517,7 +528,7 @@ file_names=()
 
 for file in "$directory"/*; do
     # Check if the item is a file (not a directory)
-    if [[ -f $file && $(basename "$file") != "vpn_config" ]]; then
+    if [[ -f $file && $(basename "$file") != "vpn_config" && $(basename "$file") != "custom_ips" ]]; then
         # Extract the file name from the full path and add it to the array
         file_names+=("$(basename "$file")")
     fi
@@ -547,6 +558,41 @@ else
 fi
 
 EOF
+
+
+
+
+
+cat << 'EOF' > $vpn_script_path/custom-route.sh
+#!/bin/bash
+source $1
+if [[ -f $CONF_DIR/custom_ips ]];then
+j=0
+o=0
+c=0
+for i in $(cat $CONF_DIR/custom_ips)
+do
+        o=$(($o+1))
+done
+echo $o
+for i in $(cat $CONF_DIR/custom_ips)
+do
+        printf "%s\n" "$c"'%'" done"
+        j=$(($j+1))
+        c=$(echo "scale=5; ($j / $o)*100"| bc)
+        c=$(echo "scale=0; $c / 1" | bc)
+        tput cuu 0
+        ip route add $i via $LOCAL_GATEWAY
+        sleep 0.001
+done
+else
+echo "####--- There is no $CONF_DIR/custom_ips file to make custom route form them ---####"
+fi
+
+
+EOF
+
+
 
 cat <<EOF > $vpn_config_path
 CLIENT_DIR="$vpn_script_path"
