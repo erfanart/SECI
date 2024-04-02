@@ -446,7 +446,7 @@ if [ -f "$vpn_config_path" ]; then
                 ;;
             show)
                 echo "Show VPN CLIENT..."
-                bash $CLIENT_DIR/vpn-show.sh $vpn_config
+                bash \$CLIENT_DIR/vpn-show.sh \$vpn_config
                 ;;
             *)
                 echo "Invalid input. Please enter 'start' or 'stop' or 'setup'."
