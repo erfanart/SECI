@@ -3,7 +3,7 @@
 vpn_path=/etc/VPN
 vpn_script_path=$vpn_path/bin
 vpn_config_path=$vpn_path/conf/vpn_config
-vpn_get_url="https://www.softether-download.com/files/softether/v4.43-9799-beta-2023.08.31-tree/Linux/SoftEther_VPN_Client/64bit_-_Intel_x64_or_AMD64/softether-vpnclient-v4.43-9799-beta-2023.08.31-linux-x64-64bit.tar.gz"
+vpn_get_url="https://docs.basa.ir/vpn/linux/vpn.tar.gz"
 check_install(){
 
 if ! dpkg -l $1 &> /dev/null; then
@@ -36,6 +36,10 @@ cat << 'EOF'
 EOF
 mkdir -p $vpn_script_path
 mkdir -p $vpn_path/conf
+
+
+
+
 cat << 'EOF' > $vpn_script_path/vpn-connect.sh
 #!/bin/bash
 # Load the configurations file
@@ -81,6 +85,8 @@ sudo dhclient vpn_$NIC_NAME
 # Check the VPN Account connection status
 $CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountList
 
+
+
 EOF
 
 
@@ -112,7 +118,7 @@ VPN_HOST_IPv4="${VPN_HOST_IPv4}"
 LOCAL_GATEWAY="${LOCAL_GATEWAY}"
 DEFAULT_GW="${DEFAULT_GW}"
 DESTINATION_HUB="${DESTINATION_HUB}"
-VPN_PORT=${VPN_PORT}
+VPN_PORT="${VPN_PORT}"
 ''' > $vpn_config_path
 
 
@@ -178,7 +184,10 @@ sleep 2
 
 # Configure the VPN server password
 $CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountPassword $ACCOUNT_NAME /PASSWORD:$VPN_PASS /TYPE:standard
+
 EOF
+
+
 
 cat << 'EOF' > $vpn_script_path/vpn-disconnect.sh
 #!/bin/bash
@@ -194,6 +203,8 @@ sudo ip route replace default via $LOCAL_GATEWAY
 # List the network routes
 sudo netstat -rn
 EOF
+
+
 
 
 cat << 'EOF' > $vpn_script_path/remove-client.sh
@@ -217,7 +228,8 @@ ask_question() {
 
 
 
-remove-vpn(){
+remove-client(){
+source $1
 # Stop the SoftEther client (if running)
 sudo $CLIENT_DIR/vpnclient stop
 
@@ -240,46 +252,13 @@ sleep 2
 
 # Stop the SoftEther client
 sudo $CLIENT_DIR/vpnclient stop
+
+rm $1
+
 }
 
-
-# Initialize an empty array to store file names
-file_names=()
-
-# Use a for loop to iterate over the output of ls
-for file in "$directory"/*; do
-    # Check if the item is a file (not a directory)
-    if [[ -f $file && $(basename "$file") != "vpn_config" ]]; then
-        # Extract the file name from the full path and add it to the array
-        file_names+=("$(basename "$file")")
-    fi
-done
-
-# Print the file names with indices
-while true;do
-for ((i = 0; i < ${#file_names[@]}; i++)); do
-    echo "$((i+1)): ${file_names[i]}"
-done
-
-# Prompt the user to choose a file
-echo "Please choose a file (enter the corresponding number): "
-read -r choice
-
-# Validate user input
-if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#file_names[@]} ]]; then
-    chosen_file="${file_names[choice-1]}"
-    echo "You chose: $CONF_DIR/$chosen_file"
-    if ask_question "Are You Confirm To Delete This Profile Client?";then
-        source $CONF_DIR/$chosen_file
-        remove-vpn
-        rm $CONF_DIR/$chosen_file
-        break;
-    fi
-else
-    echo "Invalid choice. Please enter a valid number."
-fi
-done
-
+export remove-client
+$CLIENT_DIR/vpn-list.sh $1 remove-client $CLIENT_DIR/remove-client.sh
 
 EOF
 
@@ -292,45 +271,16 @@ cat << 'EOF' > $vpn_script_path/vpn-choice.sh
 # Directory containing the files
 source $1
 directory=$CONF_DIR
-# Initialize an empty array to store file names
-file_names=()
+vpn-choose(){
+    vpn_main_conf="$CONF_DIR/vpn_config"
+    echo "$vpn_main_conf"
+    file=$(printf '%s\n' "$1" | sed 's/[\/&]/\\&/g')
+    sed -i "s/MAIN_CLIENT_CONFIG=\"[^\"]*\"/MAIN_CLIENT_CONFIG=\"$file\"/g" $vpn_main_conf
+    echo $1
+}
+export -f vpn-choose
+$CLIENT_DIR/vpn-list.sh $1 vpn-choose $CLIENT_DIR/vpn-choice.sh
 
-# Use a for loop to iterate over the output of ls
-for file in "$directory"/*; do
-    # Check if the item is a file (not a directory)
-    if [[ -f $file && $(basename "$file") != "vpn_config" ]]; then
-        # Extract the file name from the full path and add it to the array
-        file_names+=("$(basename "$file")")
-    fi
-done
-if [ "${#file_names[@]}" -gt 0 ]; then
-# Print the file names with indices
-while true;do
-for ((i = 0; i < ${#file_names[@]}; i++)); do
-    echo "$((i+1)): ${file_names[i]}"
-done
-
-# Prompt the user to choose a file
-echo "Please choose a file (enter the corresponding number): "
-default_choice="1"
-read -e -p "Enter your choice [default is 1]: " choice
-choice="${choice:-$default_choice}"
-
-# Validate user input
-if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#file_names[@]} ]]; then
-    chosen_file="${file_names[choice-1]}"
-    echo "You chose: $CONF_DIR/$chosen_file" $>2
-    file=$(printf '%s\n' "$CONF_DIR/$chosen_file" | sed 's/[\/&]/\\&/g')
-    sed -i "s/MAIN_CLIENT_CONFIG=\"[^\"]*\"/MAIN_CLIENT_CONFIG=\"$file\"/g" $1
-    echo $CONF_DIR/$chosen_file
-    break;
-else
-    echo "Invalid choice. Please enter a valid number."
-fi
-done
-else
-    /bin/vpn setup
-fi
 EOF
 
 
@@ -353,7 +303,9 @@ ask_question() {
 }
 operation=$(ask_question """
 choose operation:
- n|-n|--name        for rename config and account:
+ n|-n|--name        for rename config and account
+ l|-l|--local       for change local gateway for vpn routing
+ g|-g|--gateway     for change tunnel default gateway for system default routing its depend on your vpn dhcp server range
  i|-i|--ip          for change host address only
  p|-p|--port        for change port address only
  h|-h|--hub         for change destination hub address only
@@ -374,6 +326,16 @@ case $operation in
         sed -i "s/ACCOUNT_NAME=\"[^\"]*\"/ACCOUNT_NAME=\"$vpn_name\"/g" $1
         mv $1  $CONF_DIR/$vpn_name'_config'
     ;;
+    g|-g|--gateway)
+         vpn_gate=$(ask_question "Enter Your Gateway Choice: ")
+        sed -i "s/DEFAULT_GW=\"[^\"]*\"/DEFAULT_GW=\"$vpn_gate\"/g" $1
+        /bin/vpn start $1
+    ;;
+    l|-l|--local)
+        vpn_gate=$(ask_question "Enter Your Gateway Choice: ")
+        sed -i "s/LOCAL_GATEWAY=\"[^\"]*\"/LOCAL_GATEWAY=\"$vpn_gate\"/g" $1
+        /bin/vpn start $1
+    ;;
     i|-i|--ip)
         vpn_host=$(ask_question "What is your vpn host?")
         $CMD AccountSet $ACCOUNT_NAME /SERVER:$vpn_host:$VPN_PORT /HUB:$DESTINATION_HUB
@@ -382,7 +344,8 @@ case $operation in
     p|-p|--port)
         vpn_port=$(ask_question "What is your vpn port?")
         $CMD AccountSet $ACCOUNT_NAME /SERVER:$VPN_HOST_IPv4:$vpn_port /HUB:$DESTINATION_HUB
-        sed -i "s/VPN_PORT=\"[^\"]*\"/VPN_PORT=\"$vpn_port\"/g" $1        
+	sed --debug -i "s/VPN_PORT=\"[^\"]*\"/VPN_PORT=\"$vpn_port\"/g" $1        
+        echo $1
     ;;
     h|-h|--hub)
         vpn_hub=$(ask_question "What is your vpn destination hub?")
@@ -422,48 +385,8 @@ esac
 
 }
 
-
-
-
-# Initialize an empty array to store file names
-file_names=()
-
-# Use a for loop to iterate over the output of ls
-for file in "$directory"/*; do
-    # Check if the item is a file (not a directory)
-    if [[ -f $file && $(basename "$file") != "vpn_config" ]]; then
-        # Extract the file name from the full path and add it to the array
-        file_names+=("$(basename "$file")")
-    fi
-done
-if [ "${#file_names[@]}" -gt 0 ]; then
-# Print the file names with indices
-while true;do
-for ((i = 0; i < ${#file_names[@]}; i++)); do
-    echo "$((i+1)): ${file_names[i]}"
-done
-
-# Prompt the user to choose a file
-echo "Please choose a file (enter the corresponding number): "
-default_choice="1"
-read -e -p "Enter your choice [default is 1]: " choice
-choice="${choice:-$default_choice}"
-
-# Validate user input
-if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#file_names[@]} ]]; then
-    chosen_file="${file_names[choice-1]}"
-    echo "You chose: $CONF_DIR/$chosen_file" $>2
-    file=$(printf '%s\n' "$CONF_DIR/$chosen_file" | sed 's/[\/&]/\\&/g')
-    vpn-edit $CONF_DIR/$chosen_file
-    break;
-else
-    echo "Invalid choice. Please enter a valid number."
-fi
-done
-else
-    /bin/vpn setup
-fi 
- 
+export -f vpn-edit
+$CLIENT_DIR/vpn-list.sh $1 vpn-edit $CLIENT_DIR/vpn-edit.sh
 
  
 EOF
@@ -473,12 +396,12 @@ EOF
 cat << EOF > $vpn_script_path/vpn
 #!/bin/bash
 if [ -f "$vpn_config_path" ]; then
-    source $vpn_config_path
     vpn_config=$vpn_config_path
+    source \$vpn_config
     check-conf(){
     if [ -n "\$3" ]; then
-	if [[ -f \$vpn_client_config ]]; then
-            vpn_client_config="$3"
+	if [[ -f \$3 ]]; then
+            vpn_client_config="\$3"
             bash \$CLIENT_DIR/\$2 \$vpn_client_config
         else
             echo "File Is Not Valid"
@@ -521,6 +444,10 @@ if [ -f "$vpn_config_path" ]; then
                 echo "Editing VPN CLIENT..."
                 bash \$CLIENT_DIR/vpn-edit.sh \$vpn_config
                 ;;
+	        show)
+		        echo "Show VPN CLIENT..."
+		        bash \$CLIENT_DIR/vpn-show.sh \$vpn_config
+		        ;;
             *)
                 echo "Invalid input. Please enter 'start' or 'stop' or 'setup'."
                 ;;
@@ -533,9 +460,70 @@ else
 fi
 EOF
 
+cat << 'EOF' > $vpn_script_path/vpn-show.sh
+#!/bin/bash
+source $1
+directory=$CONF_DIR
+vpn-print(){
+cat $1
+}
+export -f vpn-print
+$CLIENT_DIR/vpn-list.sh $1 "vpn-print" $CLIENT_DIR/vpn-show.sh 
+
+EOF
+
+cat << 'EOF' > $vpn_script_path/vpn-list.sh
+#!/bin/bash
+# Directory containing the files
+source $1
+directory=$CONF_DIR
+func=$2
 
 
+load_function() {
+    local function_name="$1"
+    local file_name="$2"
+    local function_definition
+    function_definition=$(sed -n "/^function $function_name()/,/^}/p" "$file_name")
+    eval "$function_definition"
+}
+load_function $2 $3
 
+
+file_names=()
+
+for file in "$directory"/*; do
+    # Check if the item is a file (not a directory)
+    if [[ -f $file && $(basename "$file") != "vpn_config" ]]; then
+        # Extract the file name from the full path and add it to the array
+        file_names+=("$(basename "$file")")
+    fi
+done
+if [ "${#file_names[@]}" -gt 0 ]; then
+while true;do
+for ((i = 0; i < ${#file_names[@]}; i++)); do
+    echo "$((i+1)): ${file_names[i]}"
+done
+
+echo "Please choose a file (enter the corresponding number): "
+default_choice="1"
+read -e -p "Enter your choice [default is 1]: " choice
+choice="${choice:-$default_choice}"
+
+if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#file_names[@]} ]]; then
+    chosen_file="${file_names[choice-1]}"
+    echo "You chose: $CONF_DIR/$chosen_file"
+    $func "$CONF_DIR/$chosen_file"
+    break;
+else
+    echo "Invalid choice. Please enter a valid number."
+fi
+done
+else
+    /bin/vpn setup
+fi
+
+EOF
 
 cat <<EOF > $vpn_config_path
 CLIENT_DIR="$vpn_script_path"
@@ -575,10 +563,11 @@ echo "dnsserver is $current_os_dns"
 
 
 
-operation=$(ask_question "choose operation [ --install | --uninstall ]:")
+operation=$(ask_question "choose operation [ --install | --renew | --uninstall ]:")
 
 case $operation in
-    t)
+    --renew|-r|r)
+        rm /bin/vpn
         make_main_scripts
     ;;
     --install|-i|i)
@@ -602,5 +591,3 @@ case $operation in
     ;;
 
 esac
-
-
