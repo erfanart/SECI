@@ -651,7 +651,7 @@ case $operation in
         vpn stop
         bash  $vpn_script_path/remove-client.sh
         rm -rf $vpn_script_path
-        rm -rf /bin/vpn*
+        rm -rf /bin/vpn
 
     ;;
 
