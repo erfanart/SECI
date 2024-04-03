@@ -208,6 +208,8 @@ sudo ip route replace default via $LOCAL_GATEWAY
 sudo netplan apply
 pkill -9 dhclient
 sleep 2
+iptables -t nat -D POSTROUTING -o ens160 -j MASQUERADE
+iptables -t nat -D POSTROUTING -o vpn_$NIC_NAME -j MASQUERADE
 sudo netstat -rn
 EOF
 
