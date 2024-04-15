@@ -1,6 +1,6 @@
 #!/bin/bash
 
-vpn_path=/etc/VPN
+vpn_path=/opt/VPN
 vpn_script_path=$vpn_path/bin
 vpn_config_path=$vpn_path/conf/vpn_config
 vpn_get_url="https://docs.basa.ir/vpn/linux/vpn.tar.gz"
