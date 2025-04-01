@@ -40,7 +40,15 @@ check_conf() {
         return
     fi
     while IFS='=' read -r key value; do
-            [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
+            # echo key : $key and $key=$(sed 's/"//g' <<< "$value")
+            [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< $value)"
+            if [ "$key" = "LOCAL_GATEWAY" ]; then
+                if [ -z "$value" ] || [ "$value" = "None" ]; then
+                    declare -x "$key=$(ip -4 route show default | grep -v 'dev vpn' | awk 'NR==1 && /default/ {print $3}')"
+                else
+                    declare -x "$key=$(sed 's/"//g' <<< "$value")"
+                fi
+            fi
     done < $config_file
     bash "$CLIENT_DIR/$script" 
 }
