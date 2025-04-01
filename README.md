@@ -24,5 +24,5 @@ to edit and modify one vpn client profile you can choose from existing profiles
 
 ## usage
 ```bash
-sudo bash -c "$(curl -sf https://raw.githubusercontent.com/erfanart/SECI/main/SECI)"
+sudo bash -c "$(curl -sf https://raw.githubusercontent.com/erfanart/SECI/master/installer.sh)"
 ```
