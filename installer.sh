@@ -71,7 +71,7 @@ MAIN_CLIENT_CONFIG=""
 EOF
 
 chmod +x $vpn_script_path/*
-ln -s $vpn_script_path/vpn /bin/vpn
+ln -s $vpn_script_path/vpn.sh /bin/vpn
 }
 get_vpn_files() {
 cat << 'EOF'
