@@ -91,7 +91,7 @@ case "$1" in
             # echo key : $key and $key=$(sed 's/"//g' <<< "$value")
             if [ "$key" = "LOCAL_GATEWAY" ]; then
                 echo $value
-                if [ "$value" == "\"None\"" ]; then
+                if [ -z "$value" ] || [ "$value" == "\"None\"" ]; then
                     echo hello
                     value=$(ip -4 route show default | grep -v 'dev vpn' | awk 'NR==1 && /default/ {print $3}')
                 else
