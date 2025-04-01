@@ -82,7 +82,7 @@ case "$1" in
     cmd)     
         echo -e "${GREEN}Switching to command mode...${NC}"
         "$CLIENT_DIR/vpnclient" start
-        "$CLIENT_DIR/vpncmd" /CLIENT localhost /CMD 
+        "$CLIENT_DIR/vpncmd" /CLIENT localhost /CMD ${@:2}
         ;;
     *) 
         echo -e "${RED}Invalid input!${NC}"
