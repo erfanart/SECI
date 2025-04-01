@@ -1,5 +1,5 @@
 #!/bin/bash
-files_url="https://raw.githubusercontent.com/erfanart/SECI/refs/heads/master/"
+files_url="https://raw.githubusercontent.com/erfanart/SECI/refs/heads/master/bin"
 vpn_path=/opt/VPN
 vpn_script_path=$vpn_path/bin
 vpn_config_path=$vpn_path/conf/vpn_config
@@ -38,30 +38,23 @@ EOF
 mkdir -p $vpn_script_path
 mkdir -p $vpn_path/conf
 
-
-
-
-# cat << 'EOF' > $vpn_script_path/vpn-connect.sh
-
-# cat << 'EOF' > $vpn_script_path/setup-client.sh
-
-# cat << 'EOF' > $vpn_script_path/vpn-disconnect.sh
-
-# cat << 'EOF' > $vpn_script_path/remove-client.sh
-
-# cat << 'EOF' > $vpn_script_path/vpn-choice.sh
-
-# cat <<'EOF' > $vpn_script_path/vpn-edit.sh
-
-# cat << EOF > $vpn_script_path/vpn
-
-# cat << 'EOF' > $vpn_script_path/vpn-show.sh
-
-# cat << 'EOF' > $vpn_script_path/vpn-list.sh
-
-# cat << 'EOF' > $vpn_script_path/custom-route.sh
-
-
+BINS=(
+    "custom-route.sh"
+    "Iran_ips.sh"
+    "remove-client.sh"
+    "setup-client.sh"
+    "vpn-choice.sh"
+    "vpn-connect.sh"
+    "vpn-disconnect.sh"
+    "vpn-edit.sh"
+    "vpn-list.sh"
+    "vpn.sh"
+    "vpn-show.sh"
+)
+for file in ${BINS[@]}
+    do
+        curl -sSf  "$files_url/$file" >> $vpn_script_path/$file
+    done
 
 
 cat <<EOF > $vpn_config_path
@@ -77,9 +70,9 @@ get_vpn_files() {
 cat << 'EOF'
 
 #######################################################
-######					         ######
+######                                           ######
 ######	    	    GET VPNCLIENT FILES	         ######
-######						 ######
+######                                           ######
 #######################################################
 EOF
     mkdir -p $vpn_path

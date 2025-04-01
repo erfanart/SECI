@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Output file
-IRAN_IPS_FILE="iranian_ips_full.txt"
+IRAN_IPS_FILE="iranian_ips.txt"
 
 # User-Agent header to mimic a browser
 USER_AGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3.1 Safari/605.1.15"
