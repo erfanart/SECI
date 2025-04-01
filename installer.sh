@@ -1,5 +1,5 @@
 #!/bin/bash
-
+files_url="https://raw.githubusercontent.com/erfanart/SECI/refs/heads/master/"
 vpn_path=/opt/VPN
 vpn_script_path=$vpn_path/bin
 vpn_config_path=$vpn_path/conf/vpn_config
@@ -29,9 +29,9 @@ make_main_scripts(){
 cat << 'EOF'
 
 #######################################################
-######					         ######
-######        MAKEING MAIN SCRIPTS FILES         ######
-######						 ######
+######					                         ######
+######           GET MAIN SCRIPTS FILES          ######
+######						                     ######
 #######################################################
 
 EOF
