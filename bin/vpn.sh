@@ -41,16 +41,17 @@ check_conf() {
         return
     fi
     while IFS='=' read -r key value; do
-            # echo key : $key and $key=$(sed 's/"//g' <<< "$value")
             if [ "$key" = "LOCAL_GATEWAY" ]; then
-                if [ -z "$value" ] || [ "$value" = "None" ]; then
-                    declare -x "$key=$(ip -4 route show default | grep -v 'dev vpn' | awk 'NR==1 && /default/ {print $3}')"
+                echo $value
+                if [ "$value" == "\"None\"" ]; then
+                    value=$(ip -4 route show default | grep -v 'dev vpn' | awk 'NR==1 && /default/ {print $3}')
                 else
-                    declare -x "$key=$(sed 's/"//g' <<< "$value")"
+                    value=$(sed 's/"//g' <<< $value)
                 fi
             else
-                [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< $value)"
+                value=$(sed 's/"//g' <<< $value)
             fi
+                [[ -n "$key" ]] && declare -x "$key=$value"
     done < $config_file
     bash "$CLIENT_DIR/$script" 
 }
@@ -87,22 +88,6 @@ case "$1" in
         "$CLIENT_DIR/vpncmd" /CLIENT localhost /CMD ${@:2}
         ;;
     *) 
-        while IFS='=' read -r key value; do
-            # echo key : $key and $key=$(sed 's/"//g' <<< "$value")
-            if [ "$key" = "LOCAL_GATEWAY" ]; then
-                echo $value
-                if [ -z "$value" ] || [ "$value" == "\"None\"" ]; then
-                    echo hello
-                    value=$(ip -4 route show default | grep -v 'dev vpn' | awk 'NR==1 && /default/ {print $3}')
-                else
-                echo bye
-                    value=$(sed 's/"//g' <<< $value)
-                fi
-                declare -x "$key=$value"
-            else
-                [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< $value)"
-            fi
-    done < $MAIN_CLIENT_CONFIG
         echo -e "${RED}Invalid input!${NC}"
         show_help
         exit 1
