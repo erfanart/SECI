@@ -1,4 +1,4 @@
-# VPN Control Script
+# Soft Ether VPN Soft Ether Client Control Script
 
 ## Overview
 
@@ -17,7 +17,9 @@ This Bash script provides a command-line interface for managing a VPN client. It
 
 just command below:
 
+```bash
 sudo bash -c "$(curl -sf https://raw.githubusercontent.com/erfanart/SECI/master/installer.sh)"
+```
 
 ## Usage
 
