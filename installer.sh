@@ -54,7 +54,7 @@ BINS=(
 for file in ${BINS[@]}
     do
         echo "get $file" 
-        curl -sSf  "$files_url/$file" >> $vpn_script_path/$file
+        curl -sSf  "$files_url/$file" > $vpn_script_path/$file
     done
 
 

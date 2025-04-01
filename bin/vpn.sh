@@ -28,16 +28,21 @@ check_conf() {
     local action="$1"
     local script="$2"
     local client_config="$3"
-
+    local config_file
     if [[ -n "$client_config" && -f "$client_config" ]]; then
-        bash "$CLIENT_DIR/$script" "$client_config"
+        config_file="$client_config"
     elif [[ -f "$MAIN_CLIENT_CONFIG" ]]; then
-        bash "$CLIENT_DIR/$script" "$MAIN_CLIENT_CONFIG"
+        config_file="$MAIN_CLIENT_CONFIG"
     else
         echo -e "${YELLOW}Changing default VPN client...${NC}"
         bash "$CLIENT_DIR/vpn-choice.sh" "$VPN_CONFIG"
         /bin/vpn "$action"
+        return
     fi
+    while IFS='=' read -r key value; do
+            [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
+    done < $config_file
+    bash "$CLIENT_DIR/$script" 
 }
 
 # Check if the VPN config file exists
@@ -47,12 +52,10 @@ if [[ ! -f "$VPN_CONFIG" ]]; then
 fi
 
 # Load configuration
-source "$VPN_CONFIG"
-echo $MAIN_CLIENT_CONFIG
+source "$VPN_CONFIG" 
 while IFS='=' read -r key value; do
     [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
-done < "$VPN_CONFIG"
-
+done < $VPN_CONFIG
 # Check if an argument is provided
 if [[ -z "$1" ]]; then
     show_help
@@ -71,7 +74,7 @@ case "$1" in
     cmd)     
         echo -e "${GREEN}Switching to command mode...${NC}"
         "$CLIENT_DIR/vpnclient" start
-        "$CLIENT_DIR/vpncmd" /CLIENT localhost /CMD
+        "$CLIENT_DIR/vpncmd" /CLIENT localhost /CMD 
         ;;
     *) 
         echo -e "${RED}Invalid input!${NC}"
