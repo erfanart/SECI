@@ -34,6 +34,7 @@ check_conf() {
     elif [[ -f "$MAIN_CLIENT_CONFIG" ]]; then
         config_file="$MAIN_CLIENT_CONFIG"
     else
+        echo "not found :  $MAIN_CLIENT_CONFIG"
         echo -e "${YELLOW}Changing default VPN client...${NC}"
         bash "$CLIENT_DIR/vpn-choice.sh" "$VPN_CONFIG"
         /bin/vpn "$action"
