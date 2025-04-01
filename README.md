@@ -1,4 +1,4 @@
-# Soft Ether VPN Soft Ether Client Control Script
+# Soft Ether VPN Client Control Script
 
 ## Overview
 
