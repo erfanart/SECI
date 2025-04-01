@@ -19,6 +19,7 @@ show_help() {
     echo -e "  ${GREEN}change${NC}          - Change the default VPN client."
     echo -e "  ${GREEN}remove${NC}          - Remove the VPN client."
     echo -e "  ${GREEN}edit${NC}            - Edit the VPN configuration."
+    echo -e "  ${GREEN}edit${NC}            - Get and Update Iran ip address subnets ." 
     echo -e "  ${GREEN}show${NC}            - Display the current VPN settings."
     echo -e "  ${GREEN}cmd${NC}             - Open VPN command mode."
 }
@@ -81,6 +82,7 @@ case "$1" in
     change)  echo -e "${YELLOW}Changing default VPN client...${NC}"; bash "$CLIENT_DIR/vpn-choice.sh" "$VPN_CONFIG" ;;
     remove)  echo -e "${RED}Removing VPN client...${NC}"; bash "$CLIENT_DIR/remove-client.sh" "$VPN_CONFIG" ;;
     edit)    echo -e "${YELLOW}Editing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-edit.sh" "$VPN_CONFIG" ;;
+    getir)   echo -e "${YELLOW}Getting or Update Iran ip subnets ...${NC}"; bash "$CLIENT_DIR/Iran_ips.sh" "$VPN_CONFIG" ;;
     show)    echo -e "${GREEN}Showing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-show.sh" "$VPN_CONFIG" ;;
     cmd)     
         echo -e "${GREEN}Switching to command mode...${NC}"
