@@ -48,6 +48,7 @@ fi
 
 # Load configuration
 source "$VPN_CONFIG"
+echo $MAIN_CLIENT_CONFIG
 while IFS='=' read -r key value; do
     [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
 done < "$VPN_CONFIG"
