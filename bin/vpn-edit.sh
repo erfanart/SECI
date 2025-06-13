@@ -74,12 +74,12 @@ case $operation in
             case $vpn_pass_type in 
                 s|-s|"")
                     vpn_pass_type="standard"
-                    $CMD AccountPasswordSet $ACCOUNT_NAME /PASSWORD:vpn_password /TYPE:$vpn_pass_type
+                    $CMD AccountPasswordSet $ACCOUNT_NAME /PASSWORD:$vpn_password /TYPE:$vpn_pass_type
                     break
                 ;;
                 r|-r)
                     vpn_pass_type="radius"
-                    CMD AccountPasswordSet $ACCOUNT_NAME /PASSWORD:vpn_password /TYPE:$vpn_pass_type
+                    CMD AccountPasswordSet $ACCOUNT_NAME /PASSWORD:$vpn_password /TYPE:$vpn_pass_type
                     break
                 ;;
                 *)
