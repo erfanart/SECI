@@ -81,7 +81,7 @@ case "$1" in
     setup)   echo -e "${GREEN}Setting up VPN...${NC}"; bash "$CLIENT_DIR/setup-client.sh" "$VPN_CONFIG" ;;
     change)  echo -e "${YELLOW}Changing default VPN client...${NC}"; bash "$CLIENT_DIR/vpn-choice.sh" "$VPN_CONFIG" ;;
     remove)  echo -e "${RED}Removing VPN client...${NC}"; bash "$CLIENT_DIR/remove-client.sh" "$VPN_CONFIG" ;;
-    edit)    echo -e "${YELLOW}Editing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-edit.sh" "$VPN_CONFIG" ;;
+    edit)    echo -e "${YELLOW}Editing VPN client...${NC}"; check_conf "edit" "vpn-connect.sh" "$2" ;;
     getir)   echo -e "${YELLOW}Getting or Update Iran ip subnets ...${NC}"; bash "$CLIENT_DIR/Iran_ips.sh" "$VPN_CONFIG" ;;
     show)    echo -e "${GREEN}Showing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-show.sh" "$VPN_CONFIG" ;;
     cmd)     
