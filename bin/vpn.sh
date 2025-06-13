@@ -83,7 +83,7 @@ case "$1" in
     remove)  echo -e "${RED}Removing VPN client...${NC}"; bash "$CLIENT_DIR/remove-client.sh" "$VPN_CONFIG" ;;
     edit)    echo -e "${YELLOW}Editing VPN client...${NC}";  bash "$CLIENT_DIR/vpn-edit.sh" "$VPN_CONFIG" ;;
     getir)   echo -e "${YELLOW}Getting or Update Iran ip subnets ...${NC}"; bash "$CLIENT_DIR/Iran_ips.sh" "$VPN_CONFIG" ;;
-    show)    echo -e "${GREEN}Showing VPN client...${NC}";  bash "$CLIENT_DIR/vpn-show.sh" "$VPN_CONFIG"  ;;
+    show)    echo -e "${GREEN}Showing VPN client...${NC}";  bash "$CLIENT_DIR/vpn-show.sh" "$VPN_CONFIG" ;;
     cmd)     
         echo -e "${GREEN}Switching to command mode...${NC}"
         "$CLIENT_DIR/vpnclient" start
