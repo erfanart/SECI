@@ -79,11 +79,11 @@ case "$1" in
     start)   echo -e "${GREEN}Starting VPN...${NC}"; check_conf "start" "vpn-connect.sh" "$2" ;;
     stop)    echo -e "${GREEN}Stopping VPN...${NC}"; check_conf "stop" "vpn-disconnect.sh" "$2" ;;
     setup)   echo -e "${GREEN}Setting up VPN...${NC}"; bash "$CLIENT_DIR/setup-client.sh" "$VPN_CONFIG" ;;
-    change)  echo -e "${YELLOW}Changing default VPN client...${NC}"; check_conf "change" "vpn-choice.sh" "$2" ;;
-    remove)  echo -e "${RED}Removing VPN client...${NC}"; check_conf "remove" "vpn-choice.sh" "$2" ;;
-    edit)    echo -e "${YELLOW}Editing VPN client...${NC}"; check_conf "edit" "vpn-choice.sh" "$2" ;;
+    change)  echo -e "${YELLOW}Changing default VPN client...${NC}"; bash "$CLIENT_DIR/vpn-choice.sh" "$VPN_CONFIG" ;;
+    remove)  echo -e "${RED}Removing VPN client...${NC}"; bash "$CLIENT_DIR/remove-client.sh" "$VPN_CONFIG" ;;
+    edit)    echo -e "${YELLOW}Editing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-edit.sh" "$VPN_CONFIG" ;;
     getir)   echo -e "${YELLOW}Getting or Update Iran ip subnets ...${NC}"; bash "$CLIENT_DIR/Iran_ips.sh" "$VPN_CONFIG" ;;
-    show)    echo -e "${GREEN}Showing VPN client...${NC}"; check_conf "show" "vpn-choice.sh" "$2" ;;
+    show)    echo -e "${GREEN}Showing VPN client...${NC}"; bash "$CLIENT_DIR/vpn-show.sh" "$VPN_CONFIG" ;;
     cmd)     
         echo -e "${GREEN}Switching to command mode...${NC}"
         "$CLIENT_DIR/vpnclient" start
