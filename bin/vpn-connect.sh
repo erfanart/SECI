@@ -43,7 +43,7 @@ sleep 3
 # Check the VPN Account connection status
 $CLIENT_DIR/vpncmd /CLIENT localhost /CMD AccountList
 
-iptables -t nat -A POSTROUTING -o ens160 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o vpn_$NIC_NAME -j MASQUERADE
 iptables -A FORWARD -j ACCEPT
 
