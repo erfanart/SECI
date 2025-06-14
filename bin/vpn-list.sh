@@ -37,7 +37,7 @@ choice="${choice:-$default_choice}"
 
 if [[ $choice =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#file_names[@]} ]]; then
     chosen_file="${file_names[choice-1]}"
-    echo "You chose: $CONF_DIR/$chosen_file"
+    log DEBUG "chosed file is: $CONF_DIR/$chosen_file"
     $func "$CONF_DIR/$chosen_file"
     break;
 else
