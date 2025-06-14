@@ -2,6 +2,7 @@
 
 VPN_CONFIG="/opt/VPN/conf/vpn_config"
 source /opt/VPN/bin/vpn-log.sh
+export -f log
 # Colors for better readability
 RED='\033[0;31m'
 GREEN='\033[0;32m'
