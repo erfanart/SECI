@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # فایل لاگ قابل تنظیم
-LOG_FILE="${LOG_FILE:-/var/log/myscript.log}"
+LOG_FILE="${LOG_FILE:-/dev/null}"
 
 # رنگ‌ها
 NC='\033[0m'          # بدون رنگ
