@@ -8,6 +8,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No color
 
+# Load configuration
+source "$VPN_CONFIG" 
+while IFS='=' read -r key value; do
+    [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
+done < $VPN_CONFIG
 # Function to display help
 show_help() {
     echo -e "${YELLOW}VPN Control Script${NC}"
@@ -63,11 +68,7 @@ if [[ ! -f "$VPN_CONFIG" ]]; then
     exit 1
 fi
 
-# Load configuration
-source "$VPN_CONFIG" 
-while IFS='=' read -r key value; do
-    [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
-done < $VPN_CONFIG
+
 # Check if an argument is provided
 if [[ -z "$1" ]]; then
     show_help
