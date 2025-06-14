@@ -4,13 +4,13 @@
 LOG_FILE="${LOG_FILE:-/dev/null}"
 
 # رنگ‌ها
-NC='\033[0m'          # بدون رنگ
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-GRAY='\033[0;37m'
+export NC='\033[0m'          # بدون رنگ
+export RED='\033[0;31m'
+export GREEN='\033[0;32m'
+export YELLOW='\033[0;33m'
+export BLUE='\033[0;34m'
+export CYAN='\033[0;36m'
+export GRAY='\033[0;37m'
 
 # تابع لاگ
 log() {
