@@ -30,10 +30,10 @@ log() {
     esac
 
     # ساخت خط لاگ
-    local LOG_LINE="[$TIMESTAMP] [$LEVEL] $MESSAGE"
+    local LOG_LINE="[$TIMESTAMP] [$COLOR $LEVEL $NC] $MESSAGE"
 
     # چاپ در ترمینال با رنگ
-    echo -e "${COLOR}${LOG_LINE}${NC}"
+    echo -e "${LOG_LINE}"
 
     # ذخیره در فایل بدون رنگ
     echo "$LOG_LINE" >> "$LOG_FILE"
