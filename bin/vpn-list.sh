@@ -21,7 +21,7 @@ for file in "$directory"/*; do
     # Check if the item is a file (not a directory)
     if [[ -f $file && $(basename "$file") != "vpn_config" && $(basename "$file") != "custom_ips" ]]; then
         # Extract the file name from the full path and add it to the array
-        log DEGBUG "ADD FILES"
+        log DEGBUG "ADD FILE: $file"
         file_names+=("$(basename "$file")")
     fi
 done
