@@ -3,7 +3,7 @@
 directory=$CONF_DIR
 func=$2
 
-log INFO $CLIENT_DIR
+log INFO "vpn-list.sh file variable parsed CLIENT_DIR: $CLIENT_DIR"
 
 load_function() {
     local function_name="$1"
