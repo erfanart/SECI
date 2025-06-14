@@ -12,7 +12,7 @@ NC='\033[0m' # No color
 source "$VPN_CONFIG" 
 while IFS='=' read -r key value; do
     [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
-    echo -e " ${RED}[ - ]${NC} $key : $value"
+    echo -e " ${RED}[ - ]${NC}" "$key : $value"
 done < $VPN_CONFIG
 # Function to display help
 show_help() {
