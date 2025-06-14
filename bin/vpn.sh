@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VPN_CONFIG="/opt/VPN/conf/vpn_config"
-
+source /opt/VPN/bin/vpn-log.sh
 # Colors for better readability
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -12,7 +12,7 @@ NC='\033[0m' # No color
 source "$VPN_CONFIG" 
 while IFS='=' read -r key value; do
     [[ -n "$key" ]] && declare -x "$key=$(sed 's/"//g' <<< "$value")"
-    echo -e " ${RED}[ - ]${NC}" "$key : $value"
+    log INFO "$key : $value"
 done < $VPN_CONFIG
 # Function to display help
 show_help() {
