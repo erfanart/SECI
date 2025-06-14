@@ -48,6 +48,7 @@ BINS=(
     "vpn-disconnect.sh"
     "vpn-edit.sh"
     "vpn-list.sh"
+    "vpn-log.sh"
     "vpn.sh"
     "vpn-show.sh"
 )
