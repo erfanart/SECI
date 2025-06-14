@@ -97,6 +97,7 @@ esac
 }
 
 export -f vpn-edit
+log INFO $CLIENT_DIR
 $CLIENT_DIR/vpn-list.sh $1 vpn-edit $CLIENT_DIR/vpn-edit.sh
 
  
