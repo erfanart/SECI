@@ -3,6 +3,7 @@
 directory=$CONF_DIR
 func=$2
 
+log INFO $CLIENT_DIR
 
 load_function() {
     local function_name="$1"
