@@ -2,7 +2,7 @@
 # Load the configurations file
 # Stop the SoftEther client (if running)
 vpn stop
-log DEBUG $1
+source $1
 sleep 2
 
 # Start the SoftEther client
