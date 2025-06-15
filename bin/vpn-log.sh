@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # فایل لاگ قابل تنظیم
-LOG_FILE="${LOG_FILE:-/dev/null}"
+export LOG_FILE="${LOG_FILE:-/dev/null}"
 
 # رنگ‌ها
 export NC='\033[0m'          # بدون رنگ
@@ -37,5 +37,5 @@ log() {
     echo -e "${LOG_LINE}"
 
     # ذخیره در فایل بدون رنگ
-    # echo "$LOG_LINE" >> "$LOG_FILE"
+    echo "$LOG_LINE" >> "$LOG_FILE"
 }
