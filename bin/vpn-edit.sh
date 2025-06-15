@@ -2,7 +2,7 @@
 # Directory containing the files
 directory=$CONF_DIR
 vpn-edit(){  
-
+source $1
 
 ask_question() {
 
