@@ -37,5 +37,5 @@ log() {
     echo -e "${LOG_LINE}"
 
     # ذخیره در فایل بدون رنگ
-    echo "$LOG_LINE" >> "$LOG_FILE"
+    # echo "$LOG_LINE" >> "$LOG_FILE"
 }
