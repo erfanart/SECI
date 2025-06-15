@@ -21,6 +21,7 @@ log() {
 
     # انتخاب رنگ
     local COLOR=$NC
+    
     case "$LEVEL" in
         INFO) COLOR=$CYAN ;;
         WARN|WARNING) COLOR=$YELLOW ;;
