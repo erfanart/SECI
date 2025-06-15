@@ -19,12 +19,12 @@ file_names=()
 
 for file in "$directory"/*; do
     # Check if the item is a file (not a directory)
-    if [[ -f $file && $(basename "$file") != "vpn_config" && $(basename "$file") != "custom_ips" ]]; then
+    if [[ -f $file && $(basename "$file") != "vpn_config" && $(basename "$file") != "custom_ips"  && $(basename "$file") != "iran_ips.txt" ]]; then
         # Extract the file name from the full path and add it to the array
         file_names+=("$(basename "$file")")
     fi
 done
-log DEBUG "FILES exists: $file_names"
+#log DEBUG "FILES exists: $file_names"
 if [ "${#file_names[@]}" -gt 0 ]; then
 while true;do
 for ((i = 0; i < ${#file_names[@]}; i++)); do
